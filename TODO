@@ -1,0 +1,3 @@
+Config page help
+Consider url ignore pattern when recalculating
+Do not recalculate if stuff that matters did not change

@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "target": "esnext",
+    "jsx": "react",
+    "module": "es2020",
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "preserveConstEnums": true,
+    "rootDir": "src",
+    "keyofStringsOnly": true,
+    "lib": ["DOM", "es2020"],
+    "downlevelIteration": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "~/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules"]
+}

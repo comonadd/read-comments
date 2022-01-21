@@ -1,0 +1,51 @@
+.config-page {
+  max-width: var(--page-max-width);
+  height: 100vh;
+  padding: 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.config-editor {
+  width: 100%;
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.config-editor .editor {
+  flex: 1 1 100%;
+  height: 100%;
+}
+
+.config-editor .edit-area {
+  width: 100%;
+}
+
+.CodeMirror {
+  height: auto !important;
+  border: 1px solid #eee;
+  padding: 8px;
+
+  .CodeMirror-code {
+    font-size: 14px;
+  }
+}
+
+.config-editor textarea.editor-textarea {
+}
+
+.logs {
+  flex: 1 1 40%;
+}
+
+.logs-list {
+  min-height: 500px;
+  font-size: 14px;
+}
+
+.logs-list .logs__item {
+  margin: 8px 0;
+}
