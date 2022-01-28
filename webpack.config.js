@@ -18,6 +18,7 @@ module.exports = {
   mode: DEV ? "development" : "production",
   entry: {
     options: `${SRC}/options.tsx`,
+    popup: `${SRC}/popup.tsx`,
     background: `${SRC}/background.ts`,
   },
   output: {
@@ -77,6 +78,7 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         { from: `${SRC}/options.html`, to: BUILD },
+        { from: `${SRC}/popup.html`, to: BUILD },
         { from: `${SRC}/images`, to: path.resolve(BUILD, "images") },
       ],
     }),

@@ -1,41 +1,32 @@
 import { DEFAULT_CONFIG } from "./constants";
-import { Configuration, calculateUrlType } from "~/configuration";
-import { reportNoActivityMatcher } from "~/userLog";
-import { addTrackedItem } from "~/trackedRecord";
-import { DbHandle, openIDB } from "./db";
+import { Configuration } from "~/configuration";
 import extAPI from "./extAPI";
+import { getCommentsForUrl } from "./sources";
+
+const CONFIG_STORE_NAME = "rc-config";
 
 interface TrackerState {
-  config: Configuration<any>;
-  dbHandle: DbHandle;
+  config: Configuration;
 }
 
 const state: TrackerState = {
   config: null,
-  dbHandle: null,
 };
 
+const hostnames = new Set(["nytimes.com"]);
+
 const shouldIgnoreUrl = (url: string) => {
-  if (!state.config.urlIgnorePattern) return false;
-  const rxp = new RegExp(state.config.urlIgnorePattern);
-  return rxp.test(url);
+  if (!hostnames.has(url)) {
+    return true;
+  }
+  return false;
 };
 
 const trackUrl = async (url: string) => {
   if (shouldIgnoreUrl(url)) return;
-  const t = calculateUrlType(state.config, url);
-  if (t === null) {
-    const uu = new URL(url);
-    url = uu.origin + uu.pathname;
-    await reportNoActivityMatcher(url);
-  }
-  const item = {
-    url,
-    created: new Date(),
-    type: t,
-    duration: 0,
-  };
-  await addTrackedItem(item);
+  const comments = getCommentsForUrl(url);
+  console.log(`these are the comments for ${url}`);
+  console.log(comments);
 };
 
 const subcribeToExtStorageChangesOf = <T>(
@@ -43,7 +34,7 @@ const subcribeToExtStorageChangesOf = <T>(
   listener: (c: T) => void
 ) => {
   chrome.storage.onChanged.addListener((changes, area) => {
-    const newValue = (changes[key] as any).newValue;
+    const newValue = (changes[key] as any)?.newValue;
     if (area === "sync" && newValue) {
       listener(newValue);
     }
@@ -57,26 +48,25 @@ const tabListener = (tabId: number, changeInfo: { url: string }, tab: any) => {
 };
 
 const setup = async () => {
-  extAPI.storage.sync.get("tracker-config", (storageData) => {
-    let config = storageData["tracker-config"];
+  extAPI.storage.sync.get(CONFIG_STORE_NAME, (storageData) => {
+    let config = storageData[CONFIG_STORE_NAME];
     if (!config) {
-      extAPI.storage.sync.set({ "tracker-config": DEFAULT_CONFIG });
+      extAPI.storage.sync.set({ CONFIG_STORE_NAME: DEFAULT_CONFIG });
       config = DEFAULT_CONFIG;
     }
     state.config = config;
   });
-  state.dbHandle = await openIDB();
-  subcribeToExtStorageChangesOf<Configuration<any>>(
-    "tracker-config",
-    (config) => {
-      state.config = config;
-    }
-  );
-  extAPI.tabs.onUpdated.addListener(tabListener);
-
-  extAPI.browserAction.onClicked.addListener(function (tab) {
-    extAPI.tabs.create({ url: extAPI.runtime.getURL("./dashboard.html") });
+  subcribeToExtStorageChangesOf<Configuration>(CONFIG_STORE_NAME, (config) => {
+    state.config = config;
   });
+  extAPI.tabs.onUpdated.addListener(tabListener);
 };
 
 setup();
+
+chrome.runtime.onMessage.addListener(function (url, sender, onSuccess) {
+  fetch(url)
+    .then((response) => response.text())
+    .then((responseText) => onSuccess(responseText));
+  return true;
+});

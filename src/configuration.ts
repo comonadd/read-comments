@@ -3,13 +3,13 @@ import { DEFAULT_CONFIG } from "~/constants";
 import AppContext from "~/AppContext";
 export { DEFAULT_CONFIG } from "~/constants";
 
-export const enum Site {
-  Hackernews = 0,
+export const enum Source {
+  Hackernews = "hackernews",
 }
 
 export type Configuration = {
   // Sites to check for comments
-  sitesToCheck: Site[];
+  configuredSources: Source[];
 };
 
 export const useAppConfigPart = <K extends keyof CC, CC = Configuration>(part: K): CC[K] => {
