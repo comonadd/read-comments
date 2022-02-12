@@ -8,5 +8,5 @@ export const USER_LOG_STORE_NAME = "user-logs";
 export const ACTIVITY_UNDEFINED = -1;
 
 export const DEFAULT_CONFIG: Configuration = {
-  configuredSources: [Source.Hackernews],
+  configuredSources: [Source.Hackernews, Source.Reddit],
 };

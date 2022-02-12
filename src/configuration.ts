@@ -4,7 +4,8 @@ import AppContext from "~/AppContext";
 export { DEFAULT_CONFIG } from "~/constants";
 
 export const enum Source {
-  Hackernews = "hackernews",
+  Hackernews = "Hackernews",
+  Reddit = "Reddit",
 }
 
 export type Configuration = {
@@ -12,7 +13,9 @@ export type Configuration = {
   configuredSources: Source[];
 };
 
-export const useAppConfigPart = <K extends keyof CC, CC = Configuration>(part: K): CC[K] => {
+export const useAppConfigPart = <K extends keyof CC, CC = Configuration>(
+  part: K
+): CC[K] => {
   const { config } = useContext(AppContext);
   const value = (config as any)[part] ?? (DEFAULT_CONFIG as any)[part];
   return value;

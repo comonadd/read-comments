@@ -1,6 +1,7 @@
 import { DEFAULT_CONFIG, Source } from "~/configuration";
 import axios from "axios";
 import extAPI from "./extAPI";
+import log from "loglevel";
 
 export interface Comments {
   title: string;
@@ -15,7 +16,7 @@ interface CommentsSource {
 
 class HackerNewsSource implements CommentsSource {
   async getCommentsFor(url: string) {
-    console.log("[hn] loading comments for", url);
+    log.debug(`[hn] loading comments for ${url}`);
     type Tag = "story" | "front_page";
     interface Hit {
       title: string;
@@ -50,8 +51,71 @@ class HackerNewsSource implements CommentsSource {
   }
 }
 
+class RedditSource implements CommentsSource {
+  async getCommentsFor(url: string) {
+    log.debug(`[reddit] loading comments for ${url}`);
+    type Tag = "story" | "front_page";
+    interface Hit {
+      title: string;
+      points: number;
+      created_at: string;
+      _tags: Tag[];
+      objectID: string;
+      num_comments: number;
+    }
+    type Cursor = string | null;
+    const permalinkToAbsolute = (permalink: string) => {
+      return `https://reddit.com${permalink}`;
+    };
+
+    interface ChildData {
+      title: string;
+      ups: number;
+      downs: number;
+      score: number;
+      thumbnail: string;
+      author: string;
+      permalink: string;
+    }
+
+    interface DataChild {
+      data: ChildData;
+      kind: string;
+    }
+
+    interface Resp {
+      data: {
+        after: Cursor;
+        dist: number;
+        modhash: string;
+        geo_filter: string;
+        children: DataChild[];
+      };
+    }
+    return new Promise<Comments[]>((resolve) => {
+      chrome.runtime.sendMessage(
+        `http://www.reddit.com/search.json?q=${url}`,
+        (data: Resp) => {
+          log.debug(data);
+          const comments: Comments[] = data.data.children.map((child) => {
+            const item = child.data;
+            return {
+              url: permalinkToAbsolute(item.permalink),
+              title: item.title,
+              points: item.score,
+              num_comments: 0,
+            };
+          });
+          resolve(comments);
+        }
+      );
+    });
+  }
+}
+
 const sourceHandlers = {
   [Source.Hackernews]: new HackerNewsSource(),
+  [Source.Reddit]: new RedditSource(),
 };
 
 const getSourceHandlerForSourceId = (id: Source): CommentsSource => {
@@ -63,14 +127,16 @@ export type LoadedComments = Record<Source, Comments[]>;
 interface CommentsSource {}
 
 export const getCommentsForUrl = async (url: string) => {
-  console.log("loading comments for", url);
-  // const config = state?.config ?? DEFAULT_CONFIG;
   const config = DEFAULT_CONFIG;
   const comments: LoadedComments = {} as any;
+  log.debug(`loading comments for ${url}`);
   for (let sourceId of config.configuredSources) {
+    log.debug(sourceId);
     const sh = getSourceHandlerForSourceId(sourceId);
     const c = await sh.getCommentsFor(url);
     comments[sourceId] = c;
   }
   return comments;
 };
+
+log.setLevel("debug");

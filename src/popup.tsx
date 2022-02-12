@@ -14,9 +14,12 @@ import {
 } from "@chakra-ui/react";
 import { UpDownIcon } from "@chakra-ui/icons";
 import { Source } from "./configuration";
-import { FaHackerNews } from "react-icons/fa";
+import { FaHackerNews, FaReddit } from "react-icons/fa";
 import { atom, atomFamily, useRecoilState } from "recoil";
 import { recoilPersist } from "./recoilPersist";
+import range from "lodash/range";
+import { sortBy } from "lodash";
+import log from "loglevel";
 
 const useCurrentTab = () => {
   const [tab, setTab] = useState(null);
@@ -38,7 +41,7 @@ const { persistAtom } = recoilPersist({ expiresAfter: minutes(10) });
 const pagesState = atom({
   key: "pagesState",
   default: {},
-  // effects_UNSTABLE: [persistAtom],
+  effects_UNSTABLE: [persistAtom],
 });
 
 type LoadedPages = Record<string, LoadedComments>;
@@ -49,9 +52,12 @@ const useCommentsForCurrentPage = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [comments, setComments] = useState<LoadedComments>({} as any);
   useEffect(() => {
+    log.debug("these are saved things");
+    log.debug(loadedPages);
     if (tab === null) return;
-    if (loadedPages[tab.url] !== undefined) {
-      console.log(loadedPages);
+    if (loadedPages && loadedPages[tab.url] !== undefined) {
+      log.debug(`saved, loading from local storage: ${tab.url}`);
+      log.debug(loadedPages[tab.url]);
       setComments(loadedPages[tab.url]);
     }
     (async () => {
@@ -70,6 +76,7 @@ const useCommentsForCurrentPage = () => {
 
 const sourceToIcon = {
   [Source.Hackernews]: FaHackerNews,
+  [Source.Reddit]: FaReddit,
 };
 
 const renderIconForSource = (source: Source) => {
@@ -81,50 +88,50 @@ const renderIconForSource = (source: Source) => {
 };
 
 const CommentsDisplay = (props: { comments: LoadedComments }) => {
+  const e = Array.from(Object.entries(props.comments));
   return (
     <Box>
-      <Accordion defaultIndex={[0]} allowMultiple>
-        {Array.from(Object.entries(props.comments)).map(
-          ([source, comments]) => {
-            return (
-              <AccordionItem>
-                <AccordionButton>
-                  <Box
-                    flex="1"
-                    textAlign="left"
-                    display="flex"
-                    alignItems="center"
-                  >
-                    {renderIconForSource(source as Source)}
-                    <Text ml="2">{source}</Text>
-                  </Box>
-                  <AccordionIcon />
-                </AccordionButton>
-                <AccordionPanel pb={4}>
-                  {comments.map((comment) => {
-                    return (
-                      <Box width="100%" mb="2" display="flex">
-                        <Box
-                          display="flex"
-                          flexDir="column"
-                          alignItems="center"
-                          justifyContent="center"
-                          width="2rem"
-                        >
-                          <UpDownIcon />
-                          <Text>{comment.points}</Text>
-                        </Box>
-                        <Link href={comment.url} isExternal>
-                          {comment.title}
-                        </Link>
+      <Accordion defaultIndex={range(e.length)} allowMultiple>
+        {e.map(([source, comments]) => {
+          const commentsSorted = sortBy(comments, "points");
+          return (
+            <AccordionItem key={source}>
+              <AccordionButton>
+                <Box
+                  flex="1"
+                  textAlign="left"
+                  display="flex"
+                  alignItems="center"
+                >
+                  {renderIconForSource(source as Source)}
+                  <Text ml="2">{source}</Text>
+                </Box>
+                <AccordionIcon />
+              </AccordionButton>
+              <AccordionPanel pb={4}>
+                {commentsSorted.map((comment) => {
+                  return (
+                    <Box width="100%" mb="2" display="flex" key={comment.url}>
+                      <Box
+                        display="flex"
+                        flexDir="column"
+                        alignItems="center"
+                        justifyContent="center"
+                        width="2rem"
+                      >
+                        <UpDownIcon />
+                        <Text>{comment.points}</Text>
                       </Box>
-                    );
-                  })}
-                </AccordionPanel>
-              </AccordionItem>
-            );
-          }
-        )}
+                      <Link href={comment.url} isExternal>
+                        {comment.title}
+                      </Link>
+                    </Box>
+                  );
+                })}
+              </AccordionPanel>
+            </AccordionItem>
+          );
+        })}
       </Accordion>
     </Box>
   );

@@ -1,3 +1,4 @@
+import log from "loglevel";
 import { AtomEffect } from "recoil";
 
 export interface PersistStorage {
@@ -23,20 +24,50 @@ export const recoilPersist = (
     };
   }
 
-  const { key = "recoil-persist", storage = localStorage } = config;
+  const storage = {
+    getItem: async (key: string) => {
+      return new Promise((resolve) => {
+        chrome.storage.sync.get(key, (data) => {
+          resolve(data);
+        });
+      });
+    },
+    setItem: async (key: string, value: string) => {
+      return new Promise<void>((resolve) => {
+        chrome.storage.sync.set({ [key]: value }, () => {
+          resolve();
+        });
+      });
+    },
+  };
+  const { key = "recoil-persist" } = config;
+
+  type ExpTable = Record<string, number>;
+  const getExpTable = (): ExpTable => {
+    const expTableJSON: string | null = localStorage.getItem(exp_table_key);
+    let expTable: ExpTable | null =
+      expTableJSON !== null ? JSON.parse(expTableJSON) : null;
+    if (expTable === null) {
+      expTable = {};
+    }
+    return expTable;
+  };
 
   const persistAtom: AtomEffect<any> = ({ onSet, node, trigger, setSelf }) => {
     if (trigger === "get") {
       const state = getState();
-      const expTable: any = localStorage.getItem(exp_table_key);
-      const isExpired =
-        config.expiresAfter &&
-        expTable[node.key] &&
-        expTable[node.key] + config.expiresAfter > Date.now();
-      if (isExpired) {
-        console.log(`key ${node.key} has expired, will not get value`);
-        return null;
-      }
+      // const expTable = getExpTable();
+      // const isExpirationDateDefined = config.expiresAfter && expTable[node.key];
+      // if (isExpirationDateDefined) {
+      //   const expDate = expTable[node.key] + config.expiresAfter;
+      //   const now = Date.now();
+      //   if (expDate > now) {
+      //     log.debug(
+      //       `key ${node.key} has expired, will not get value (${expDate}, ${now}))`
+      //     );
+      //     return null;
+      //   }
+      // }
       if (typeof state.then === "function") {
         state.then((s: any) => {
           if (s.hasOwnProperty(node.key)) {
@@ -51,13 +82,21 @@ export const recoilPersist = (
 
     onSet(async (newValue, _, isReset) => {
       const state = getState();
-      const expTable: any = localStorage.getItem(exp_table_key);
+      const expTable = getExpTable();
       if (typeof state.then === "function") {
         state.then((s: any) => updateState(newValue, s, node.key, isReset));
-        localStorage.setItem(exp_table_key, JSON.stringify(expTable));
       } else {
         updateState(newValue, state, node.key, isReset);
       }
+      // update expiration timings
+      const now = Date.now();
+      log.debug(
+        `updating expiration timings for ${exp_table_key} -> ${node.key}: ${now}`
+      );
+      localStorage.setItem(
+        exp_table_key,
+        JSON.stringify({ ...expTable, [node.key]: now })
+      );
     });
   };
 
@@ -105,11 +144,7 @@ export const recoilPersist = (
 
   const setState = (state: any): void => {
     try {
-      if (typeof storage.mergeItem === "function") {
-        storage.mergeItem(key, JSON.stringify(state));
-      } else {
-        storage.setItem(key, JSON.stringify(state));
-      }
+      storage.setItem(key, JSON.stringify(state));
     } catch (e) {
       console.error(e);
     }

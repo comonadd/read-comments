@@ -2,18 +2,18 @@
   "name": "ReadComments",
   "description": "Check for comments on popular sites for current article",
   "version": "0.0.1",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "permissions": ["storage", "activeTab", "tabs"],
   "options_page": "./options.html",
   "background": {
-    "scripts": ["./background.min.js"]
+    "service_worker": "./background.min.js"
   },
   "icons": {
     "16": "./images/favicon-16.png",
     "64": "./images/favicon-64.png",
     "128": "./images/favicon-128.png"
   },
-  "browser_action": {
+  "action": {
     "default_icon": "./images/favicon-64.png",
     "default_popup": "popup.html"
   }
