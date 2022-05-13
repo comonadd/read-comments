@@ -87,50 +87,50 @@ const renderIconForSource = (source: Source) => {
   return <Icon as={icon} />;
 };
 
+const CommentsAccordion = (props: { source: string; comments: Comments[] }) => {
+  const { source, comments } = props;
+  const commentsSorted = sortBy(comments, "points");
+  return (
+    <AccordionItem key={source}>
+      <AccordionButton>
+        <Box flex="1" textAlign="left" display="flex" alignItems="center">
+          {renderIconForSource(source as Source)}
+          <Text ml="2">{source}</Text>
+        </Box>
+        <AccordionIcon />
+      </AccordionButton>
+      <AccordionPanel pb={4}>
+        {commentsSorted.map((comment) => {
+          return (
+            <Box width="100%" mb="2" display="flex" key={comment.url}>
+              <Box
+                display="flex"
+                flexDir="column"
+                alignItems="center"
+                justifyContent="center"
+                width="2rem"
+              >
+                <UpDownIcon />
+                <Text>{comment.points}</Text>
+              </Box>
+              <Link href={comment.url} isExternal>
+                {comment.title}
+              </Link>
+            </Box>
+          );
+        })}
+      </AccordionPanel>
+    </AccordionItem>
+  );
+};
+
 const CommentsDisplay = (props: { comments: LoadedComments }) => {
   const e = Array.from(Object.entries(props.comments));
   return (
     <Box>
       <Accordion defaultIndex={range(e.length)} allowMultiple>
         {e.map(([source, comments]) => {
-          const commentsSorted = sortBy(comments, "points");
-          return (
-            <AccordionItem key={source}>
-              <AccordionButton>
-                <Box
-                  flex="1"
-                  textAlign="left"
-                  display="flex"
-                  alignItems="center"
-                >
-                  {renderIconForSource(source as Source)}
-                  <Text ml="2">{source}</Text>
-                </Box>
-                <AccordionIcon />
-              </AccordionButton>
-              <AccordionPanel pb={4}>
-                {commentsSorted.map((comment) => {
-                  return (
-                    <Box width="100%" mb="2" display="flex" key={comment.url}>
-                      <Box
-                        display="flex"
-                        flexDir="column"
-                        alignItems="center"
-                        justifyContent="center"
-                        width="2rem"
-                      >
-                        <UpDownIcon />
-                        <Text>{comment.points}</Text>
-                      </Box>
-                      <Link href={comment.url} isExternal>
-                        {comment.title}
-                      </Link>
-                    </Box>
-                  );
-                })}
-              </AccordionPanel>
-            </AccordionItem>
-          );
+          return <CommentsAccordion source={source} comments={comments} />;
         })}
       </Accordion>
     </Box>
