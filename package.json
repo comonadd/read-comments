@@ -1,13 +1,14 @@
 {
   "name": "read-comments",
   "version": "1.0.0",
-  "description": "Read comments related to the current viewed site on the internet",
+  "description": "Read comments on other sites related to the current viewed site on the internet",
   "main": "background.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development webpack --watch -c ./webpack.config.js",
     "build-dev": "cross-env NODE_ENV=development webpack -c ./webpack.config.js",
     "bundle-stats": "cross-env NODE_ENV=production webpack -c ./webpack.config.js --json > stats.json",
     "build": "cross-env NODE_ENV=production webpack -c ./webpack.config.js",
+    "prepare": "yarn build && zip -vr dist/chrome.zip dist/chrome/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {

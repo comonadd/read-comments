@@ -12,7 +12,6 @@
     "noImplicitAny": true,
     "preserveConstEnums": true,
     "rootDir": "src",
-    "keyofStringsOnly": true,
     "lib": ["DOM", "es2020"],
     "downlevelIteration": true,
     "resolveJsonModule": true,

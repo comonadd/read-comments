@@ -4,7 +4,7 @@ import { Center, Heading, Icon, Link } from "@chakra-ui/react";
 import { Text, Box } from "@chakra-ui/react";
 import AppWrapper from "./components/AppWrapper";
 import { Spinner } from "@chakra-ui/react";
-import { Comments, getCommentsForUrl, LoadedComments } from "./sources";
+import { getCommentsForUrl, LoadedComments } from "./sources";
 import {
   Accordion,
   AccordionItem,
@@ -20,10 +20,11 @@ import { recoilPersist } from "./recoilPersist";
 import range from "lodash/range";
 import { sortBy } from "lodash";
 import log from "loglevel";
+import { Comments } from "./sources/types";
 
 const useCurrentTab = () => {
   const [tab, setTab] = useState(null);
-  var query = { active: true, currentWindow: true };
+  const query = { active: true, currentWindow: true };
   useEffect(() => {
     function callback(tabs: any) {
       const currentTab = tabs[0]; // there will be only one in this array

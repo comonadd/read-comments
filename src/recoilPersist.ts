@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 import log from "loglevel";
 import { AtomEffect } from "recoil";
 
