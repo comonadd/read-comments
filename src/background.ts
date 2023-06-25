@@ -1,7 +1,6 @@
 import { DEFAULT_CONFIG } from "./constants";
 import { Configuration } from "~/configuration";
 import extAPI from "./extAPI";
-import { getCommentsForUrl } from "./sources";
 
 const CONFIG_STORE_NAME = "rc-config";
 
@@ -11,22 +10,6 @@ interface TrackerState {
 
 const state: TrackerState = {
   config: null,
-};
-
-const hostnames = new Set(["nytimes.com"]);
-
-const shouldIgnoreUrl = (url: string) => {
-  if (!hostnames.has(url)) {
-    return true;
-  }
-  return false;
-};
-
-const trackUrl = async (url: string) => {
-  if (shouldIgnoreUrl(url)) return;
-  const comments = getCommentsForUrl(url);
-  console.log(`these are the comments for ${url}`);
-  console.log(comments);
 };
 
 const subcribeToExtStorageChangesOf = <T>(
@@ -41,12 +24,6 @@ const subcribeToExtStorageChangesOf = <T>(
   });
 };
 
-const tabListener = (tabId: number, changeInfo: { url: string }, tab: any) => {
-  if (changeInfo.url) {
-    trackUrl(changeInfo.url);
-  }
-};
-
 const setup = async () => {
   extAPI.storage.sync.get(CONFIG_STORE_NAME, (storageData) => {
     let config = storageData[CONFIG_STORE_NAME];
@@ -59,13 +36,12 @@ const setup = async () => {
   subcribeToExtStorageChangesOf<Configuration>(CONFIG_STORE_NAME, (config) => {
     state.config = config;
   });
-  extAPI.tabs.onUpdated.addListener(tabListener);
 };
 
-setup();
+void setup();
 
 chrome.runtime.onMessage.addListener(function (url, sender, onSuccess) {
-  fetch(url, {
+  void fetch(url, {
     mode: "cors",
   })
     .then((response) => response.json())

@@ -21,6 +21,7 @@ export const recoilPersist = (
 ): { persistAtom: AtomEffect<any> } => {
   if (typeof window === "undefined") {
     return {
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
       persistAtom: () => {},
     };
   }
@@ -87,7 +88,7 @@ export const recoilPersist = (
       if (typeof state.then === "function") {
         state.then((s: any) => updateState(newValue, s, node.key, isReset));
       } else {
-        updateState(newValue, state, node.key, isReset);
+        await updateState(newValue, state, node.key, isReset);
       }
       // update expiration timings
       const now = Date.now();
@@ -101,7 +102,7 @@ export const recoilPersist = (
     });
   };
 
-  const updateState = (
+  const updateState = async (
     newValue: any,
     state: any,
     key: string,
@@ -113,7 +114,7 @@ export const recoilPersist = (
       state[key] = newValue;
     }
 
-    setState(state);
+    await setState(state);
   };
 
   const getState = (): any => {
@@ -143,9 +144,9 @@ export const recoilPersist = (
     }
   };
 
-  const setState = (state: any): void => {
+  const setState = async (state: any) => {
     try {
-      storage.setItem(key, JSON.stringify(state));
+      await storage.setItem(key, JSON.stringify(state));
     } catch (e) {
       console.error(e);
     }

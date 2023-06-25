@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import ReactDOM from "react-dom";
 import { Center, Heading, Icon, Link } from "@chakra-ui/react";
 import { Text, Box } from "@chakra-ui/react";
 import AppWrapper from "./components/AppWrapper";
 import { Spinner } from "@chakra-ui/react";
-import { getCommentsForUrl, LoadedComments } from "./sources";
+import { LoadedComments } from "./sources";
 import {
   Accordion,
   AccordionItem,
@@ -15,72 +15,17 @@ import {
 import { UpDownIcon } from "@chakra-ui/icons";
 import { Source } from "./configuration";
 import { FaHackerNews, FaReddit } from "react-icons/fa";
-import { atom, atomFamily, useRecoilState } from "recoil";
-import { recoilPersist } from "./recoilPersist";
 import range from "lodash/range";
 import { sortBy } from "lodash";
-import log from "loglevel";
 import { Comments } from "./sources/types";
-
-const useCurrentTab = () => {
-  const [tab, setTab] = useState(null);
-  const query = { active: true, currentWindow: true };
-  useEffect(() => {
-    function callback(tabs: any) {
-      const currentTab = tabs[0]; // there will be only one in this array
-      setTab(currentTab);
-    }
-    chrome.tabs.query(query, callback);
-  }, []);
-  return tab;
-};
-
-const minutes = (n: number) => n * 60 * 60;
-
-const { persistAtom } = recoilPersist({ expiresAfter: minutes(10) });
-
-const pagesState = atom({
-  key: "pagesState",
-  default: {},
-  effects_UNSTABLE: [persistAtom],
-});
-
-type LoadedPages = Record<string, LoadedComments>;
-
-const useCommentsForCurrentPage = () => {
-  const [loadedPages, setLoadedPages] = useRecoilState<LoadedPages>(pagesState);
-  const tab = useCurrentTab();
-  const [loading, setLoading] = useState<boolean>(false);
-  const [comments, setComments] = useState<LoadedComments>({} as any);
-  useEffect(() => {
-    log.debug("these are saved things");
-    log.debug(loadedPages);
-    if (tab === null) return;
-    if (loadedPages && loadedPages[tab.url] !== undefined) {
-      log.debug(`saved, loading from local storage: ${tab.url}`);
-      log.debug(loadedPages[tab.url]);
-      setComments(loadedPages[tab.url]);
-    }
-    (async () => {
-      setLoading(true);
-      const c = await getCommentsForUrl(tab.url);
-      setComments(c);
-      setLoadedPages({ ...loadedPages, [tab.url]: c });
-      setLoading(false);
-    })();
-  }, [tab]);
-  return {
-    comments,
-    loading,
-  };
-};
+import { useCommentsForCurrentPage } from "./hooks";
 
 const sourceToIcon = {
   [Source.Hackernews]: FaHackerNews,
   [Source.Reddit]: FaReddit,
 };
 
-const renderIconForSource = (source: Source) => {
+const renderIconForSource  = (source: Source) => {
   const icon = sourceToIcon[source];
   if (!icon) {
     return null;

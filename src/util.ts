@@ -27,3 +27,5 @@ export function useExtStorage<T>(key: string): [T, (v: T) => void, LStatus] {
   };
   return [data, setNewValue, status];
 }
+
+export const minutes = (n: number) => n * 60 * 60;

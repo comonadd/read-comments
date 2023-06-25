@@ -1,15 +1,6 @@
 import log from "loglevel";
 import { Comments, CommentsSource } from "./types";
 
-type RedditTag = "story" | "front_page";
-interface RedditHit {
-  title: string;
-  points: number;
-  created_at: string;
-  _tags: RedditTag[];
-  objectID: string;
-  num_comments: number;
-}
 type RedditCursor = string | null;
 
 interface RedditChildData {

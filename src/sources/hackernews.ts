@@ -2,6 +2,7 @@ import log from "loglevel";
 import { Comments, CommentsSource } from "./types";
 
 type Tag = "story" | "front_page";
+
 interface Hit {
   title: string;
   points: number;
@@ -10,6 +11,7 @@ interface Hit {
   objectID: string;
   num_comments: number;
 }
+
 interface Resp {
   hits: Hit[];
 }
@@ -24,7 +26,7 @@ export class HackerNewsSource implements CommentsSource {
     return new Promise<Comments[]>((resolve) => {
       chrome.runtime.sendMessage(
         `http://hn.algolia.com/api/v1/search_by_date?query=${url}`,
-        (data) => {
+        (data: Resp) => {
           log.debug(`[hn] Got this data: ${JSON.stringify(data)}`);
           const comments: Comments[] = data.hits.map((hit: Hit) => {
             return {
