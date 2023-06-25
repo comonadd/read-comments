@@ -3,7 +3,7 @@
   "description": "Check for comments on popular sites for current article",
   "version": "0.0.1",
   "manifest_version": 3,
-  "permissions": ["storage", "tabs"],
+  "permissions": ["storage", "activeTab", "tabs"],
   "options_page": "./options.html",
   "background": {
     "service_worker": "./background.min.js"

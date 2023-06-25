@@ -137,7 +137,7 @@ export const recoilPersist = (
       return {};
     }
     try {
-      return JSON.parse(state);
+      return state;
     } catch (e) {
       console.error(e);
       return {};

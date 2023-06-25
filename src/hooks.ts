@@ -29,12 +29,12 @@ const pagesState = atom({
 type LoadedPages = Record<string, LoadedComments>;
 
 export const useCommentsForCurrentPage = () => {
-  const [loadedPages, setLoadedPages] = useRecoilState<LoadedPages>(pagesState);
+  const [loadedPages, setLoadedPages] = useState<LoadedPages>({});
   const tab = useCurrentTab();
   const [loading, setLoading] = useState<boolean>(false);
   const [comments, setComments] = useState<LoadedComments>({} as any);
   useEffect(() => {
-    log.debug("these are saved things");
+    log.debug("This is saved pages state");
     log.debug(loadedPages);
     if (tab === null) return;
     if (loadedPages && loadedPages[tab.url] !== undefined) {
@@ -46,7 +46,10 @@ export const useCommentsForCurrentPage = () => {
       setLoading(true);
       const c = await getCommentsForUrl(tab.url);
       setComments(c);
-      setLoadedPages({ ...loadedPages, [tab.url]: c });
+      const newState = { ...loadedPages, [tab.url]: c }
+      log.debug("Updating loaded pages state to");
+      log.debug(newState)
+      setLoadedPages(newState);
       setLoading(false);
     })();
   }, [tab]);
