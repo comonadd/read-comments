@@ -1,4 +1,4 @@
-# ActivityTracker
+# read-comments
 
-Firefox/Chrome extension that allows you to track & analyze your activity history.
-Everything is saved locally. Export/Import in JSON format is also available.
+Firefox/Chrome extension that allows you to find all discussion related to the current article 
+on popular sites such as Reddit & Hackernews.
